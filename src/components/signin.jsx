@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import useAuthStore from '../store/useAuthStore'; // adjust path as needed
+import Profile from './Profile';
 
 
 const Signin = () => {
@@ -31,7 +32,7 @@ const Signin = () => {
     setIsLoggedIn(true);
     setTimeout(() => {
        
-      navigate('/'); // Replace with your actual home/dashboard route
+      navigate('/profile'); // Replace with your actual home/dashboard route
 
     }, 3000);
   };
