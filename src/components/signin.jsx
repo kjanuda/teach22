@@ -45,7 +45,7 @@ const LoginForm = () => {
       console.log(res.data.message);
       setTimeout(() => {
         navigate("/");
-      }, 1500); // Simulate loading
+      }, 1500);   // Simulate loading
     } catch (err) {
       setError(err.response?.data?.message || "Login failed.");
     } finally {
