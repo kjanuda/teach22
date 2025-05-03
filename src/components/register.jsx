@@ -3,6 +3,30 @@ import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
+const getPasswordStrength = (password) => {
+  let strength = 0;
+  if (password.length >= 6) strength++;
+  if (/[A-Z]/.test(password)) strength++;
+  if (/[0-9]/.test(password)) strength++;
+  if (/[\W]/.test(password)) strength++;
+  return strength;
+};
+
+const strengthLabel = (score) => {
+  switch (score) {
+    case 0:
+    case 1:
+      return { label: 'Weak', color: 'bg-red-500' };
+    case 2:
+      return { label: 'Medium', color: 'bg-yellow-500' };
+    case 3:
+    case 4:
+      return { label: 'Strong', color: 'bg-green-500' };
+    default:
+      return { label: '', color: 'bg-gray-300' };
+  }
+};
+
 const Register = () => {
   const [formData, setFormData] = useState({
     username: '',
@@ -19,16 +43,12 @@ const Register = () => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const validateEmail = (email) => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
-  };
+  const validateEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     const { username, email, password, confirmPassword } = formData;
 
-    // ✅ Frontend Validation
     if (!username || !email || !password || !confirmPassword) {
       setError('All fields are required.');
       return;
@@ -50,7 +70,7 @@ const Register = () => {
     }
 
     try {
-      const response = await axios.post('http://localhost:5000/api/auth/register', {
+      await axios.post('http://localhost:5000/api/auth/register', {
         username,
         email,
         password,
@@ -58,13 +78,13 @@ const Register = () => {
 
       setIsRegistered(true);
       setError('');
-      setTimeout(() => {
-        navigate('/signin');
-      }, 3000);
+      setTimeout(() => navigate('/signin'), 3000);
     } catch (err) {
       setError(err.response?.data?.message || 'Something went wrong');
     }
   };
+
+  const strength = strengthLabel(getPasswordStrength(formData.password));
 
   if (isRegistered) {
     return (
@@ -77,24 +97,15 @@ const Register = () => {
         >
           <motion.h2
             className="text-2xl font-bold text-green-600 mb-4"
-            initial={{ scale: 0.9 }}
             animate={{ scale: 1 }}
             transition={{ duration: 1.5, type: 'spring' }}
           >
             Registration Successful!
           </motion.h2>
-          <motion.p
-            className="text-lg text-gray-600 mb-6"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.5 }}
-          >
+          <motion.p className="text-lg text-gray-600 mb-6">
             Redirecting to Login...
           </motion.p>
-          <motion.div
-            className="animate-spin h-12 w-12 rounded-full border-4 border-green-500 border-t-transparent"
-            transition={{ repeat: Infinity, duration: 1 }}
-          />
+          <div className="animate-spin h-12 w-12 rounded-full border-4 border-green-500 border-t-transparent" />
         </motion.div>
       </div>
     );
@@ -108,7 +119,7 @@ const Register = () => {
         transition={{ duration: 1 }}
         className="bg-white p-8 rounded-xl shadow-md w-full max-w-md"
       >
-        <h2 className="text-2xl font-bold text-green-600 mb-4 text-center">Register</h2>
+        <h2 className="text-2xl font-bold text-green-600 mb-4 text-center">Create Account</h2>
 
         {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
 
@@ -119,7 +130,7 @@ const Register = () => {
             value={formData.username}
             onChange={handleChange}
             placeholder="Username"
-            className="w-full p-3 border border-gray-300 rounded mb-4 focus:outline-none focus:ring-2 focus:ring-green-400"
+            className="w-full p-3 border border-gray-300 rounded mb-4 focus:ring-2 focus:ring-green-400"
           />
           <input
             type="email"
@@ -127,7 +138,7 @@ const Register = () => {
             value={formData.email}
             onChange={handleChange}
             placeholder="Email"
-            className="w-full p-3 border border-gray-300 rounded mb-4 focus:outline-none focus:ring-2 focus:ring-green-400"
+            className="w-full p-3 border border-gray-300 rounded mb-4 focus:ring-2 focus:ring-green-400"
           />
           <input
             type="password"
@@ -135,15 +146,21 @@ const Register = () => {
             value={formData.password}
             onChange={handleChange}
             placeholder="Password"
-            className="w-full p-3 border border-gray-300 rounded mb-4 focus:outline-none focus:ring-2 focus:ring-green-400"
+            className="w-full p-3 border border-gray-300 rounded mb-1 focus:ring-2 focus:ring-green-400"
           />
+          <div className="h-2 mb-1 rounded bg-gray-200">
+            <div className={`h-2 ${strength.color} rounded transition-all duration-500`} style={{ width: `${getPasswordStrength(formData.password) * 25}%` }}></div>
+          </div>
+          <p className={`text-xs font-medium mb-3 ${strength.color.replace("bg", "text")}`}>
+            Strength: {strength.label}
+          </p>
           <input
             type="password"
             name="confirmPassword"
             value={formData.confirmPassword}
             onChange={handleChange}
             placeholder="Confirm Password"
-            className="w-full p-3 border border-gray-300 rounded mb-4 focus:outline-none focus:ring-2 focus:ring-green-400"
+            className="w-full p-3 border border-gray-300 rounded mb-4 focus:ring-2 focus:ring-green-400"
           />
           <button
             type="submit"

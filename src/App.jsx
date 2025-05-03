@@ -10,7 +10,7 @@ import Login from './components/Logging';
 import Signin from './components/Signin';
 import Register from './components/Register';
 import Profile from './components/Profile';
-
+import ResetPassword from './components/ResetPassword';
 function App() {
   const [isLoading, setIsLoading] = useState(true);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -39,6 +39,7 @@ function App() {
             <Route path="/signin" element={<Signin onLogin={handleLogin} />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/register" element={<Register />} />
+            <Route path="/resetpassword" element={<ResetPassword />} />
           </Routes>
         </div>
       </div>

@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import axios from "axios";
 import { motion } from "framer-motion";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import useAuthStore from "../store/useAuthStore";
 
 const LoginForm = () => {
@@ -11,7 +11,8 @@ const LoginForm = () => {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const { setUser } = useAuthStore();
+  const setUser = useAuthStore((state) => state.setUser); // Zustand selector
+
   const validate = () => {
     if (!email || !password) {
       setError("All fields are required.");
@@ -40,12 +41,13 @@ const LoginForm = () => {
         password,
       });
 
-      setUser(res.data.user);// assuming your API returns user object
+      setUser(res.data.user); // Set user in Zustand store
 
       console.log(res.data.message);
+
       setTimeout(() => {
         navigate("/");
-      }, 1500);   // Simulate loading
+      }, 1500); // Simulate loading
     } catch (err) {
       setError(err.response?.data?.message || "Login failed.");
     } finally {
@@ -99,6 +101,11 @@ const LoginForm = () => {
               onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••"
             />
+            <div className="text-right mt-1">
+              <Link to="/resetpassword" className="text-sm text-blue-600 hover:underline">
+                Forgot Password?
+              </Link>
+            </div>
           </div>
 
           <motion.button
