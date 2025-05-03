@@ -1,116 +1,117 @@
-import React, { useState } from 'react';
-import { motion } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
-import useAuthStore from '../store/useAuthStore'; // adjust path as needed
-import Profile from './Profile';
+// src/components/LoginForm.jsx
+import React, { useState } from "react";
+import axios from "axios";
+import { motion } from "framer-motion";
+import { useNavigate } from "react-router-dom";
+import useAuthStore from "../store/useAuthStore";
 
-
-const Signin = () => {
-  const [formData, setFormData] = useState({ email: '', password: '' });
-  const [error, setError] = useState('');
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+const LoginForm = () => {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  
-
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+  const { setUser } = useAuthStore();
+  const validate = () => {
+    if (!email || !password) {
+      setError("All fields are required.");
+      return false;
+    }
+    if (!/\S+@\S+\.\S+/.test(email)) {
+      setError("Invalid email format.");
+      return false;
+    }
+    return true;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setError("");
+    setLoading(true);
 
-    const { email, password } = formData;
-
-    if (!email || !password) {
-      setError('Both fields are required.');
+    if (!validate()) {
+      setLoading(false);
       return;
     }
 
-    // Simulate successful login
-     // Save user to state
+    try {
+      const res = await axios.post("http://localhost:5000/api/auth/login", {
+        email,
+        password,
+      });
 
-    setIsLoggedIn(true);
-    setTimeout(() => {
-       
-      navigate('/profile'); // Replace with your actual home/dashboard route
+      setUser(res.data.user);// assuming your API returns user object
 
-    }, 3000);
+      console.log(res.data.message);
+      setTimeout(() => {
+        navigate("/");
+      }, 1500); // Simulate loading
+    } catch (err) {
+      setError(err.response?.data?.message || "Login failed.");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  if (isLoggedIn) {
-    return (
-      <div className="flex items-center justify-center h-screen bg-green-50">
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 1 }}
-          className="bg-white p-8 rounded-xl shadow-md w-full max-w-md text-center"
-        >
-          <motion.h2
-            className="text-2xl font-bold text-green-600 mb-4"
-            initial={{ scale: 0.9 }}
-            animate={{ scale: 1 }}
-            transition={{ duration: 1.5, type: "spring" }}
-          >
-            
-            Login Successful!
-          </motion.h2>
-          <motion.p
-            className="text-lg text-gray-600 mb-6"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.5 }}
-          >
-            Redirecting to Home...
-          </motion.p>
-          <motion.div
-            className="animate-spin h-12 w-12 rounded-full border-4 border-green-500 border-t-transparent"
-            transition={{ repeat: Infinity, duration: 1 }}
-          />
-        </motion.div>
-      </div>
-    );
-  }
-
   return (
-    <div className="flex items-center justify-center h-screen bg-green-50 px-4">
-      <motion.div
-        initial={{ opacity: 0, y: 30 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 1 }}
-        className="bg-white p-8 rounded-xl shadow-md w-full max-w-md"
-      >
-        <h2 className="text-2xl font-bold text-green-600 mb-4 text-center">Login</h2>
+    <motion.div
+      className="min-h-screen flex items-center justify-center bg-gray-100"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+    >
+      {loading ? (
+        <motion.div
+          className="text-center text-lg text-blue-600"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+        >
+          <div className="flex flex-col items-center">
+            <div className="loader border-t-4 border-blue-500 border-solid rounded-full w-12 h-12 animate-spin mb-4"></div>
+            Logging in...
+          </div>
+        </motion.div>
+      ) : (
+        <form
+          onSubmit={handleSubmit}
+          className="bg-white p-8 rounded-2xl shadow-lg w-full max-w-md space-y-6"
+        >
+          <h2 className="text-2xl font-bold text-center">Login</h2>
 
-        {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
+          {error && <p className="text-red-500 text-center">{error}</p>}
 
-        <form onSubmit={handleSubmit}>
-          <input
-            type="email"
-            name="email"
-            value={formData.email}
-            onChange={handleChange}
-            placeholder="Email"
-            className="w-full p-3 border border-gray-300 rounded mb-4 focus:outline-none focus:ring-2 focus:ring-green-400"
-          />
-          <input
-            type="password"
-            name="password"
-            value={formData.password}
-            onChange={handleChange}
-            placeholder="Password"
-            className="w-full p-3 border border-gray-300 rounded mb-4 focus:outline-none focus:ring-2 focus:ring-green-400"
-          />
-          <button
+          <div>
+            <label className="block text-sm font-semibold">Email</label>
+            <input
+              type="email"
+              className="w-full p-2 border border-gray-300 rounded"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="example@mail.com"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-semibold">Password</label>
+            <input
+              type="password"
+              className="w-full p-2 border border-gray-300 rounded"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="••••••••"
+            />
+          </div>
+
+          <motion.button
+            whileTap={{ scale: 0.95 }}
             type="submit"
-            className="w-full bg-green-600 text-white py-3 rounded hover:bg-green-700 transition"
+            className="w-full bg-blue-600 text-white p-2 rounded hover:bg-blue-700 transition"
           >
-            Login
-          </button>
+            Log In
+          </motion.button>
         </form>
-      </motion.div>
-    </div>
+      )}
+    </motion.div>
   );
 };
 
-export default Signin;
+export default LoginForm;

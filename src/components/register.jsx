@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -9,6 +10,7 @@ const Register = () => {
     password: '',
     confirmPassword: '',
   });
+
   const [error, setError] = useState('');
   const [isRegistered, setIsRegistered] = useState(false);
   const navigate = useNavigate();
@@ -17,14 +19,28 @@ const Register = () => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
+  const validateEmail = (email) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
 
+  const handleSubmit = async (e) => {
+    e.preventDefault();
     const { username, email, password, confirmPassword } = formData;
 
-    // Simple validation
+    // ✅ Frontend Validation
     if (!username || !email || !password || !confirmPassword) {
       setError('All fields are required.');
+      return;
+    }
+
+    if (!validateEmail(email)) {
+      setError('Invalid email format.');
+      return;
+    }
+
+    if (password.length < 6) {
+      setError('Password must be at least 6 characters.');
       return;
     }
 
@@ -33,11 +49,21 @@ const Register = () => {
       return;
     }
 
-    // Simulate successful registration
-    setIsRegistered(true);
-    setTimeout(() => {
-      navigate('/signin'); // Redirect to login after 3 seconds
-    }, 3000);
+    try {
+      const response = await axios.post('http://localhost:5000/api/auth/register', {
+        username,
+        email,
+        password,
+      });
+
+      setIsRegistered(true);
+      setError('');
+      setTimeout(() => {
+        navigate('/signin');
+      }, 3000);
+    } catch (err) {
+      setError(err.response?.data?.message || 'Something went wrong');
+    }
   };
 
   if (isRegistered) {
@@ -53,7 +79,7 @@ const Register = () => {
             className="text-2xl font-bold text-green-600 mb-4"
             initial={{ scale: 0.9 }}
             animate={{ scale: 1 }}
-            transition={{ duration: 1.5, type: "spring" }}
+            transition={{ duration: 1.5, type: 'spring' }}
           >
             Registration Successful!
           </motion.h2>
