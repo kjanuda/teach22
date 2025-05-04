@@ -1,17 +1,17 @@
-// src/components/LoginForm.jsx
 import React, { useState } from "react";
 import axios from "axios";
 import { motion } from "framer-motion";
 import { useNavigate, Link } from "react-router-dom";
 import useAuthStore from "../store/useAuthStore";
 
-const LoginForm = () => {
+const LoginForm = ({ onLogin }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
   const navigate = useNavigate();
-  const setUser = useAuthStore((state) => state.setUser); // Zustand selector
+  const setUser = useAuthStore((state) => state.setUser);
 
   const validate = () => {
     if (!email || !password) {
@@ -41,13 +41,27 @@ const LoginForm = () => {
         password,
       });
 
-      setUser(res.data.user); // Set user in Zustand store
-
-      console.log(res.data.message);
-
+      // Show success message first
+      setSuccess(true);
+      
+      // Set user in Zustand store after a brief delay to ensure alert shows after navbar changes
+      setTimeout(() => {
+        // Set the user in the store which will trigger navbar change
+        setUser(res.data.user);
+        
+        // Set flag in localStorage for Navbar to display success alert
+        localStorage.setItem('recentLogin', 'true');
+        
+        // Call the onLogin function from props to update App.js state
+        if (onLogin) {
+          onLogin();
+        }
+      }, 500);
+      
+      // Navigate after a short delay
       setTimeout(() => {
         navigate("/");
-      }, 1500); // Simulate loading
+      }, 1500);
     } catch (err) {
       setError(err.response?.data?.message || "Login failed.");
     } finally {
@@ -70,6 +84,31 @@ const LoginForm = () => {
           <div className="flex flex-col items-center">
             <div className="loader border-t-4 border-blue-500 border-solid rounded-full w-12 h-12 animate-spin mb-4"></div>
             Logging in...
+          </div>
+        </motion.div>
+      ) : success ? (
+        <motion.div
+          className="text-center text-lg text-green-600 bg-white p-8 rounded-2xl shadow-lg w-full max-w-md"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+        >
+          <div className="flex flex-col items-center">
+            <svg
+              className="w-16 h-16 text-green-500 mb-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M5 13l4 4L19 7"
+              ></path>
+            </svg>
+            <p className="text-xl font-semibold">Login Successful!</p>
+            <p className="mt-2">Redirecting to dashboard...</p>
           </div>
         </motion.div>
       ) : (
@@ -115,6 +154,15 @@ const LoginForm = () => {
           >
             Log In
           </motion.button>
+          
+          <div className="text-center mt-4">
+            <p className="text-gray-600">
+              Don't have an account?{" "}
+              <Link to="/register" className="text-blue-600 hover:underline">
+                Register
+              </Link>
+            </p>
+          </div>
         </form>
       )}
     </motion.div>
