@@ -32,7 +32,7 @@ const Home = () => {
         >
           {user && (
         <div className="mt-4 p-4 bg-gray-100 rounded">
-          <p>Welcome back, {user.name}!</p>
+          <p>Welcome bck, {user.name}!</p>
         </div>
       )}
           Mark attendance, manage classes, and streamline your daily routine with ease.
